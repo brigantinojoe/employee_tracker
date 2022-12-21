@@ -27,7 +27,7 @@ const start_inquirer = function () {
                     : response.options === "view all employees" ? employee_table() : console.log("Nope");
         }
         );
-    }
+}
 
 start_inquirer();
 
@@ -35,19 +35,39 @@ start_inquirer();
 const department_table = function () {
     db.query('SELECT * FROM department', function (err, results) {
         console.table(results);
-    })
+    });
 };
 
 // View All Roles
 const role_table = function () {
-    db.query('SELECT * FROM role', function (err, results) {
+    db.query(`SELECT role.id, role.title, department.dept_name, role.salary 
+    FROM employees_db.role 
+    JOIN department 
+    ON role.department_id = department.id`, function (err, results) {
         console.table(results);
     })
 };
 
 // View All Employees
 const employee_table = function () {
-    db.query('SELECT * FROM employee', function (err, results) {
+    db.query( `
+    SELECT 
+        origin.id,
+        origin.first_name,
+        origin.last_name,
+        new_role.title,
+        department.dept_name,
+        CONCAT(second.first_name, ' ', second.last_name) AS Manager
+    FROM
+        employees_db.employee as origin
+        LEFT JOIN
+        employees_db.role as new_role
+        ON origin.role_id = new_role.id
+        LEFT JOIN
+        employees_db.department as department
+        ON new_role.department_id = department.id
+        LEFT JOIN
+        employees_db.employee AS second ON origin.manager_id = second.id`, function (err, results) {
         console.table(results);
     })
 };
