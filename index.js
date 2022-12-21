@@ -1,6 +1,8 @@
 const inquirer = require("inquirer");
 const mysql = require('mysql2');
 
+const interval_restart = function () { setInterval(start_inquirer, 5000); };
+
 const db = mysql.createConnection(
     {
         host: 'localhost',
@@ -12,6 +14,7 @@ const db = mysql.createConnection(
 );
 
 const start_inquirer = function () {
+    clearInterval(interval_restart);
     inquirer
         .prompt([
             {
@@ -36,6 +39,9 @@ const department_table = function () {
     db.query('SELECT * FROM department', function (err, results) {
         console.table(results);
     });
+    setTimeout(() => {
+        start_inquirer();
+    }, 1000);
 };
 
 // View All Roles
@@ -45,12 +51,15 @@ const role_table = function () {
     JOIN department 
     ON role.department_id = department.id`, function (err, results) {
         console.table(results);
-    })
+    });
+    setTimeout(() => {
+        start_inquirer();
+    }, 1000);
 };
 
 // View All Employees
 const employee_table = function () {
-    db.query( `
+    db.query(`
     SELECT 
         origin.id,
         origin.first_name,
@@ -69,5 +78,8 @@ const employee_table = function () {
         LEFT JOIN
         employees_db.employee AS second ON origin.manager_id = second.id`, function (err, results) {
         console.table(results);
-    })
+    });
+    setTimeout(() => {
+        start_inquirer();
+    }, 1000);
 };
