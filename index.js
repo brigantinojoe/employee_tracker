@@ -2,7 +2,7 @@ const inquirer = require("inquirer");
 const mysql = require('mysql2');
 const Department = require('./lib/department.js');
 const Role = require('./lib/role.js');
-const db = require('../config/connection');
+const db = require('./config/connection.js');
 
 const interval_restart = function () { setInterval(start_inquirer, 5000); };
 
@@ -20,7 +20,7 @@ const start_inquirer = function () {
         .then((response) => {
             response.options === "view all departments" ? department_table()
                 : response.options === "view all roles" ? role_table()
-                    : response.options === "view all employees" ? employee_table() 
+                    : response.options === "view all employees" ? employee_table()
                         : response.options === "add a department" ? addDepartment()
                             : response.options === "add a role" ? addRole()
                                 : console.log("Nope");
@@ -124,6 +124,13 @@ const addRole = function () {
         ])
         .then((response) => {
             // Use response to call addRoleSql function (name, salary, department_id)
+            const name = response.name;
+            const salary = response.salary;
+            const department_name = response.departments;
+            const newRole = new Role(name, salary, department_name);
+            newRole.getID(department_name);
+            console.log(newRole.id);
+            // newRole.addRoleSql(name, salary, department_id);
         }
         );
 };
