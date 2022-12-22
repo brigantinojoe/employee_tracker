@@ -1,17 +1,10 @@
 const inquirer = require("inquirer");
 const mysql = require('mysql2');
+const Department = require('./lib/department.js');
+const Role = require('./lib/role.js');
+const db = require('../config/connection');
 
 const interval_restart = function () { setInterval(start_inquirer, 5000); };
-
-const db = mysql.createConnection(
-    {
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'employees_db'
-    },
-    console.log(`Connected to the courses_db database.`)
-);
 
 const start_inquirer = function () {
     clearInterval(interval_restart);
@@ -27,10 +20,13 @@ const start_inquirer = function () {
         .then((response) => {
             response.options === "view all departments" ? department_table()
                 : response.options === "view all roles" ? role_table()
-                    : response.options === "view all employees" ? employee_table() : console.log("Nope");
+                    : response.options === "view all employees" ? employee_table() 
+                        : response.options === "add a department" ? addDepartment()
+                            : response.options === "add a role" ? addRole()
+                                : console.log("Nope");
         }
         );
-}
+};
 
 start_inquirer();
 
@@ -82,4 +78,63 @@ const employee_table = function () {
     setTimeout(() => {
         start_inquirer();
     }, 1000);
+};
+
+// Add department
+const addDepartment = function () {
+    clearInterval(interval_restart);
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'What would you like to name the new department?',
+                name: "department_name"
+            }
+        ])
+        .then((response) => {
+            const new_department = new Department(response.department_name);
+            new_department.addDepartmentSql(response.department_name);
+        }
+        );
+};
+
+var role_array = [];
+
+const addRole = function () {
+    clearInterval(interval_restart);
+    const getChoices = getRoles();
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'What is the name of the role?',
+                name: "name"
+            },
+            {
+                type: 'input',
+                message: 'What is the salary of the role?',
+                name: "salary"
+            },
+            {
+                type: 'list',
+                message: 'Which department does the role belong to?',
+                name: 'departments',
+                choices: role_array
+            }
+        ])
+        .then((response) => {
+            // Use response to call addRoleSql function (name, salary, department_id)
+        }
+        );
+};
+
+const getRoles = function () {
+    role_array = [];
+    db.query(`SELECT * FROM department`, function (err, results) {
+        for (let i = 0; i < results.length; i++) {
+            const element = results[i];
+            role_array.push(element.dept_name);
+        }
+        return role_array;
+    });
 };
