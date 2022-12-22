@@ -102,7 +102,7 @@ var role_array = [];
 
 const addRole = function () {
     clearInterval(interval_restart);
-    const getChoices = getRoles();
+    getDepartments();
     inquirer
         .prompt([
             {
@@ -122,20 +122,21 @@ const addRole = function () {
                 choices: role_array
             }
         ])
-        .then((response) => {
+        .then(async (response) => {
             // Use response to call addRoleSql function (name, salary, department_id)
             const name = response.name;
             const salary = response.salary;
             const department_name = response.departments;
             const newRole = new Role(name, salary, department_name);
-            newRole.getID(department_name);
-            console.log(newRole.id);
-            // newRole.addRoleSql(name, salary, department_id);
+            var idPromise = await getId(department_name);
+            const department_id = idPromise[0][0].id;
+            newRole.addRoleSql(name, salary, department_id);
+            start_inquirer();
         }
         );
 };
 
-const getRoles = function () {
+function getDepartments() {
     role_array = [];
     db.query(`SELECT * FROM department`, function (err, results) {
         for (let i = 0; i < results.length; i++) {
@@ -144,4 +145,13 @@ const getRoles = function () {
         }
         return role_array;
     });
-};
+}
+
+async function getId(department_name) {
+    const values = [[department_name]];
+    return await db.promise().query("SELECT id FROM department WHERE dept_name = ?", [values], function (err, results) {
+        // console.log(err);
+        console.log(results[0].id);
+        return (results[0].id).valueOf();
+    });
+}
